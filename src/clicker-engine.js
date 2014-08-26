@@ -12,10 +12,11 @@ define(['src/event-util', 'src/node-util', 'src/storage-stack'], function(EventU
         }
     ],
     pauseOnError: false,
+    sequences: [],
     waitForAjaxRequests: true
   };
 
-  var CrazyClicker = function() {
+  var ClickerEngine = function() {
     var instance = this;
 
     instance.currentElement = null;
@@ -57,7 +58,7 @@ define(['src/event-util', 'src/node-util', 'src/storage-stack'], function(EventU
     }
   }
 
-  CrazyClicker.prototype._isException = function(el) {
+  ClickerEngine.prototype._isException = function(el) {
     var exceptions = configs.exceptions;
 
     for (var i = 0; i < exceptions.length; i++) {
@@ -83,7 +84,7 @@ define(['src/event-util', 'src/node-util', 'src/storage-stack'], function(EventU
     return false;
   };
 
-  CrazyClicker.prototype.play = function() {
+  ClickerEngine.prototype.play = function() {
     var instance = this;
 
     instance.interval = setInterval(function() {
@@ -110,7 +111,7 @@ define(['src/event-util', 'src/node-util', 'src/storage-stack'], function(EventU
     console.log('playing');
   };
 
-  CrazyClicker.prototype.pause = function() {
+  ClickerEngine.prototype.pause = function() {
     var instance = this;
 
     clearInterval(instance.interval);
@@ -123,5 +124,5 @@ define(['src/event-util', 'src/node-util', 'src/storage-stack'], function(EventU
   //     console.log(arguments);
   // }
 
-  return CrazyClicker;
+  return ClickerEngine;
 });

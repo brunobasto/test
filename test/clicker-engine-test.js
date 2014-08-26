@@ -1,11 +1,11 @@
 'use strict';
 
-define(['src/crazy-clicker'], function(CrazyClicker) {
-  describe("CrazyClicker", function() {
+define(['src/clicker-engine'], function(ClickerEngine) {
+  describe("ClickerEngine", function() {
     var clicker;
 
     beforeEach(function() {
-      clicker = new CrazyClicker();
+      clicker = new ClickerEngine();
     });
 
     afterEach(function() {
