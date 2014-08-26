@@ -8,7 +8,7 @@ define(['src/event-util'], function(EventUtil) {
     afterEach(function() {
     });
 
-    it('Test .simulate()', function() {
+    it('.simulate() should fire the event.', function() {
       document.body.innerHTML = '<div><div><div id="me"></div></div></div>';
 
       var node = document.querySelector('#me');

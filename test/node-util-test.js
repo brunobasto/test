@@ -8,7 +8,7 @@ define(['src/node-util'], function(NodeUtil) {
     afterEach(function() {
     });
 
-    it('Test .path()', function() {
+    it('.path() should return the CSS3 selector that represents the node passed in as argument.', function() {
       document.body.innerHTML = '<div><div><div id="me"></div></div></div>';
 
       var node = document.querySelector('#me');
@@ -20,7 +20,7 @@ define(['src/node-util'], function(NodeUtil) {
       assert.equal(path, 'html > body > div > div > div');
     });
 
-    it('Test .path() with siblings ', function() {
+    it('.path() should add :nth-child when the node has siblings.', function() {
       document.body.innerHTML = '<div><div><div></div><div></div><div id="me"></div></div></div>';
 
       var node = document.querySelector('#me');
