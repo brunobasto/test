@@ -8,14 +8,16 @@ define(['src/event-util'], function(EventUtil) {
     afterEach(function() {
     });
 
-    it('.simulate() should fire the event.', function() {
-      document.body.innerHTML = '<div><div><div id="me"></div></div></div>';
+    it('.simulate() should fire the click event.', function() {
+      var node = document.createElement('div');
 
-      var node = document.querySelector('#me');
+      var handler = sinon.spy();
+
+      node.addEventListener('click', handler);
 
       EventUtil.simulate(node, 'click');
 
-      expect(path).to.be.String;
+      assert(handler.called);
     });
   });
 });
