@@ -31,7 +31,7 @@ define(['src/node-util'], function(NodeUtil) {
 
       assert.notEqual(path, 'html > body > div > div > div');
 
-      assert.equal(path, 'html > body > div > div > div[2]');
+      assert.equal(path, 'html > body > div > div > div:nth-child(2)');
     });
   });
 });

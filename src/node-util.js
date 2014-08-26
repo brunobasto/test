@@ -19,13 +19,13 @@ define(function() {
         previousSibling = previousSibling.previousSibling;
       }
 
-      var name = node.tagName.toLowerCase();
+      var tagName = node.tagName.toLowerCase();
 
       if (index > 0) {
-        name += '[' + index + ']';
+        tagName += ':nth-child(' + index + ')';
       }
 
-      var path = [name];
+      var path = [tagName];
 
       while (node.parentElement) {
         node = node.parentElement;
