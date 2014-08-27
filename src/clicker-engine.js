@@ -1,37 +1,77 @@
 'use strict';
 
-define(['src/event-util', 'src/node-util', 'src/storage-stack'], function(EventUtil, NodeUtil, StorageStack) {
-  var configs = {
-    allowNavigation: true,
-    exceptions: [
-      {
-        textMatching: /sign\sout/ig
-        },
-      {
-        tagMatching: /script|link|body|html|head/ig
+define(
+  [
+    'event-util',
+    'node-util',
+    'storage-stack',
+    'sequence-registry'
+  ],
+  function(EventUtil, NodeUtil, StorageStack, SequenceRegistry) {
+    var ClickerEngine = function(configs) {
+      var instance = this;
+
+      instance.currentElement = null;
+
+      instance.storage = new StorageStack('clicks');
+
+      instance.sequences = SequenceRegistry.getSingleton();
+
+      configs = configs || {
+        allowNavigation: false,
+        exceptions: [
+          {
+            textMatching: /sign\sout/ig
+          },
+          {
+            tagMatching: /script|link|body|html|head/ig
+          }
+      ],
+        interval: 100,
+        pauseOnError: false,
+        sequences: [],
+        waitForAjaxRequests: true
+      };
+
+      instance.configs = configs;
+
+      instance._bindEvents();
+    }
+
+    ClickerEngine.prototype._bindEvents = function() {
+      var instance = this;
+
+      document.onreadystatechange = function() {
+        if (document.readyState == 'complete') {
+          instance.start();
         }
-    ],
-    pauseOnError: false,
-    sequences: [],
-    waitForAjaxRequests: true
-  };
-
-  var ClickerEngine = function() {
-    var instance = this;
-
-    instance.currentElement = null;
-
-    var storage = new StorageStack('clicks');
-
-    window.addEventListener('error', function(event) {
-      var el = clicker.currentElement,
-        path = '';
-
-      if (el) {
-        path = NodeUtil.getPath(el);
+        else {
+          instance.pause();
+        }
       }
 
-      var details = {
+      window.addEventListener('error', function(event) {
+          var configs = instance.configs,
+              details = instance._getErrorDetails(event);
+
+        instance.storage.push(details);
+
+        if (configs.pauseOnError) {
+          instance.pause();
+        }
+      });
+    };
+
+    ClickerEngine.prototype._getErrorDetails = function(error) {
+      var instance = this,
+          el = instance.currentElement,
+          path = '';
+
+      if (el) {
+        path = NodeUtil.path(el);
+      }
+
+      return {
         colno: event.colno,
         elementPath: path,
         filename: event.filename,
@@ -39,90 +79,142 @@ define(['src/event-util', 'src/node-util', 'src/storage-stack'], function(EventU
         message: event.message,
         url: location.href
       };
+    };
 
-      storage.push(details);
+    ClickerEngine.prototype.isExcludedElement = function(el) {
+      var instance = this,
+          exceptions = instance.configs.exceptions;
 
-      if (configs.pauseOnError) {
-        clicker.pause();
+      for (var i = 0; i < exceptions.length; i++) {
+        var exception = exceptions[i];
+
+        if (exception.tagMatching) {
+          var matched = exception.tagMatching.test(el.tagName);
+
+          if (matched) {
+            return true;
+          }
+        }
+
+        if (exception.textMatching) {
+          var matched = exception.textMatching.test(el.innerHTML);
+
+          if (matched) {
+            return true;
+          }
+        }
       }
-    });
 
-    // pause when page is loading
-    document.onreadystatechange = function() {
-      if (document.readyState == 'complete') {
-        clicker.play();
+      return false;
+    };
+
+    ClickerEngine.prototype.getDefaultAction = function() {
+      return {
+        context: 'body',
+        event: 'click',
+        selector: '#random',
+        waitAjaxRequests: true
+      };
+    };
+
+    ClickerEngine.prototype.getActiveSequence = function() {
+      var instance = this;
+
+      return instance.activeSequence;
+    };
+
+    ClickerEngine.prototype.hasActiveSequence = function() {
+      var instance = this;
+
+      return !!instance.activeSequence;
+    };
+
+    ClickerEngine.prototype.runAction = function() {
+      var instance = this,
+          action;
+
+      if (instance.hasActiveSequence()) {
+        var sequence = instance.getActiveSequence();
+
+        action = sequence.getNextAction();
+
+        if (!action) {
+          sequence.stop(instance);
+        }
+      }
+
+      if (!action) {
+        action = instance.getDefaultAction();
+      }
+
+      action = instance.processAction(action);
+
+      instance.sequences.each(function(sequence) {
+        if (!instance.hasActiveSequence() && sequence.validate(action.element)) {
+          sequence.start(instance);
+
+          action = sequence.getNextAction();
+
+          action = instance.processAction(action);
+        }
+      });
+
+      console.log('running', action);
+
+      EventUtil.simulate(action.element, action.event);
+    };
+
+    ClickerEngine.prototype.processAction = function(action) {
+      var instance = this,
+          context = document,
+          element,
+          parsed = {},
+          selector = action.selector;
+
+      if (action.context) {
+        context = document.querySelector(action.context) || document;
+      }
+
+      if (selector === '#random') {
+        var elements = context.querySelectorAll('*');
+
+        element = elements[Math.floor(Math.random() * elements.length)];
       }
       else {
-        clicker.pause();
-      }
-    }
-  }
-
-  ClickerEngine.prototype._isException = function(el) {
-    var exceptions = configs.exceptions;
-
-    for (var i = 0; i < exceptions.length; i++) {
-      var exception = exceptions[i];
-
-      if (exception.tagMatching) {
-        var matched = exception.tagMatching.test(el.tagName);
-
-        if (matched) {
-          return true;
-        }
+        element = context.querySelector(selector);
       }
 
-      if (exception.textMatching) {
-        var matched = exception.textMatching.test(el.innerHTML);
-
-        if (matched) {
-          return true;
-        }
+      if (element && instance.isExcludedElement(element)) {
+        element = null;
       }
-    }
 
-    return false;
-  };
+      parsed.element = element || document.body;
+      parsed.event = action.event || 'click';
 
-  ClickerEngine.prototype.play = function() {
-    var instance = this;
+      return parsed;
+    };
 
-    instance.interval = setInterval(function() {
-      var elements = document.querySelectorAll('*');
+    ClickerEngine.prototype.start = function() {
+      var instance = this,
+          configs = instance.configs;
 
-      var el = elements[Math.floor(Math.random() * elements.length)];
+      instance.pause();
 
-      if (NodeUtil.isNode(el) && !instance._isException(el)) {
-        instance.currentElement = el;
+      instance.interval = setInterval(function() {
+        instance.runAction();
+      }, configs.interval);
+    };
 
-        if (!configs.allowNavigation) {
-          el.addEventListener('click', function(event) {
-            event.preventDefault();
-          });
-        }
+    ClickerEngine.prototype.pause = function() {
+      var instance = this;
 
-        EventUtil.simulate(el, 'click');
-      }
-      else {
-        console.log('skipped', el);
-      }
-    }, 100);
+      clearInterval(instance.interval);
+    };
 
-    console.log('playing');
-  };
+    // TODO - also pause when AJAX is in progress
+    // XMLHttpRequest.prototype.open = function(a,b) {
+    //     console.log(arguments);
+    // }
 
-  ClickerEngine.prototype.pause = function() {
-    var instance = this;
-
-    clearInterval(instance.interval);
-
-    console.log('paused');
-  };
-
-  // TODO - also pause when AJAX is in progress
-  // XMLHttpRequest.prototype.open = function(a,b) {
-  //     console.log(arguments);
-  // }
-
-  return ClickerEngine;
-});
+    return ClickerEngine;
+  });
