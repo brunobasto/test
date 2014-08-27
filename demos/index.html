@@ -4,9 +4,17 @@
 <body>
     <h1>Home</h1>
 
-    <a href="index.html">Home</a>
-    <a id="docs" href="docs.html">Docs</a>
-    <a href="about.html">About</a>
+    <a xhref="index.html">Home</a>
+    <a id="docs" xhref="docs.html">Docs</a>
+    <a xhref="about.html">About</a>
+
+    <form action="" class="login">
+      <input type="text" class="username" />
+
+      <input type="text" class="password" />
+
+      <input type="submit" value="submit" />
+    </form>
 
     <script type="text/javascript">
     var docs = document.querySelector('#docs');
@@ -14,10 +22,44 @@
     docs.addEventListener('click', function(event) {
         event.preventDefault();
 
-        please.throwSomeError;
+        // please.throwSomeError;
     });
     </script>
 
-    <script data-main="../src/crazy-clicker" src="../bower_components/requirejs/require.js"></script>
+    <script data-main="../src/clicker-engine" src="../bower_components/requirejs/require.js"></script>
+
+    <script type="text/javascript">
+    require(['clicker-engine', 'sequence-registry'], function(ClickerEngine, SequenceRegistry) {
+      var sequences = SequenceRegistry.getSingleton();
+
+      sequences.register(
+        {
+          name: 'login-sequence',
+          context: 'html > body > form.login',
+          trigger: 'html > body > form.login',
+          pauseOnEnd: true,
+          actions: [
+            {
+                selector: 'html > body > div.login',
+                context: '#parent',
+                event: 'click'
+            },
+            {
+                selector: 'input.username',
+                event: 'focus',
+            }
+            // ,{
+            //     selector: 'input[type=submit]',
+            //     event: 'click',
+            // }
+          ]
+        }
+      );
+
+      var clicker = new ClickerEngine();
+
+      clicker.start();
+    });
+    </script>
 </body>
 </html>
