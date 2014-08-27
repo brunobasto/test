@@ -1,6 +1,6 @@
 'use strict';
 
-define(['src/clicker-engine'], function(ClickerEngine) {
+define(['clicker-engine'], function(ClickerEngine) {
   describe("ClickerEngine", function() {
     var clicker;
 

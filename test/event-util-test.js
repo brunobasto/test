@@ -1,6 +1,6 @@
 'use strict';
 
-define(['src/event-util'], function(EventUtil) {
+define(['event-util'], function(EventUtil) {
   describe('EventUtil', function() {
     beforeEach(function() {
     });

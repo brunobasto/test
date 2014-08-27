@@ -1,6 +1,6 @@
 'use strict';
 
-define(['src/storage-stack'], function(StorageStack) {
+define(['storage-stack'], function(StorageStack) {
   var storage;
 
   describe('StorageStack', function() {

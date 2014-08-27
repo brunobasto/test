@@ -1,6 +1,6 @@
 'use strict';
 
-define(['src/node-util'], function(NodeUtil) {
+define(['node-util'], function(NodeUtil) {
   describe('NodeUtil', function() {
     beforeEach(function() {
     });
