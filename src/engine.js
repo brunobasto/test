@@ -9,143 +9,127 @@ define(
   'sequence-registry'
 ],
 function(_, EventUtil, NodeUtil, StorageStack, SequenceRegistry) {
-  var Engine = function(configs) {
-    var defaults = {
-      allowNavigation: false,
-      exceptions: [
-        {
-          textMatching: /sign\sout/ig
-        },
-        {
-          tagMatching: /script|link|body|html|head/ig
-        }
-      ],
-      interval: 100,
-      pauseOnError: false,
-      waitForAjaxRequests: true
-    };
-
-    this.configs = _.extend(defaults, configs);
+  var Engine = function(config) {
+    this.config = _.defaults(
+      config || {},
+      {
+        allowNavigation: false,
+        exceptions: [
+          {
+            textMatching: /sign\sout/ig
+          },
+          {
+            tagMatching: /script|link|body|html|head/ig
+          }
+        ],
+        interval: 100,
+        stopOnError: false,
+        waitForAjaxRequests: true
+      }
+    );
 
     this.currentElement = null;
-
-    this.registry = SequenceRegistry.getSingleton();
 
     this.storage = new StorageStack('clicks');
 
     this._bindEvents();
   };
 
+  Engine.registry = SequenceRegistry.getSingleton();
+
   Engine.prototype._bindEvents = function() {
-    var instance = this;
-
-    document.onreadystatechange = function() {
-      if (document.readyState == 'complete') {
-        instance.start();
-      }
-      else {
-        instance.pause();
-      }
-    }
   };
 
-  Engine.prototype.startSequence = function(sequence) {
-    var instance = this;
+  Engine.prototype.computeNextElement = function() {
+    var element = NodeUtil.random();
 
-    console.log('started', sequence.name);
+    this.currentElement = element;
 
-    sequence.next();
-
-    instance.activeSequence = sequence;
-  };
-
-  Engine.prototype.stopSequence = function(sequence) {
-    var instance = this;
-
-    console.log('stopped', sequence.name);
-
-    delete instance.activeSequence;
+    return element;
   };
 
   Engine.prototype.getActiveSequence = function() {
-    var instance = this;
-
-    return instance.activeSequence;
-  };
-
-  Engine.prototype.hasActiveSequence = function() {
-    var instance = this,
-        activeSequence = instance.activeSequence;
-
-    return !!activeSequence && activeSequence.isActive();
+    return this.activeSequence;
   };
 
   Engine.prototype.getEligibleSequences = function(element) {
-    var instance = this,
-        sequences = [];
+    var sequences = [];
 
-    instance.registry.each(function(sequence) {
-      if (!instance.hasActiveSequence() && sequence.isEligible(element)) {
-        sequences.push(sequence);
-      }
-    });
+    if (!this.hasActiveSequence()) {
+      Engine.registry.each(function(sequence) {
+        if (sequence.isEligible(element)) {
+          sequences.push(sequence);
+        }
+      });
+    }
 
     return sequences;
   };
 
-  Engine.prototype.run = function() {
-    var instance = this,
-        element = instance.currentElement,
-        eligibles = instance.getEligibleSequences(element);
+  Engine.prototype.hasActiveSequence = function() {
+    var activeSequence = this.activeSequence;
 
-    if (instance.hasActiveSequence()) {
-      var sequence = instance.getActiveSequence();
+    return !!activeSequence && activeSequence.isActive();
+  };
+
+  Engine.prototype.run = function() {
+    var element = this.currentElement,
+        eligibles = this.getEligibleSequences(element);
+
+    if (this.hasActiveSequence()) {
+      var sequence = this.getActiveSequence();
 
       sequence.next();
 
       if (!sequence.isActive()) {
-        instance.stopSequence(sequence);
+        this.stopSequence(sequence);
       }
     }
     else if (eligibles.length) {
       var sequence = eligibles[_.random(0, eligibles.length - 1)];
 
-      instance.startSequence(sequence);
+      this.startSequence(sequence);
+
+      sequence.next();
     }
     else {
       EventUtil.simulate(element, 'click');
     }
   };
 
-  Engine.prototype.computeNextElement = function() {
-    var instance = this,
-        element = NodeUtil.random();
-
-    instance.currentElement = element;
-
-    return element;
-  };
-
   Engine.prototype.start = function() {
-    var instance = this,
-        configs = instance.configs;
+    var instance = this;
 
-    instance.pause();
+    this.stop();
 
-    instance.interval = setInterval(function() {
+    this.interval = setInterval(function() {
       instance.computeNextElement();
 
       instance.run();
-    }, configs.interval);
+    }, this.config.interval);
   };
 
-  Engine.prototype.pause = function() {
-    var instance = this;
+  Engine.prototype.startSequence = function(sequence) {
+    console.log('started', sequence.name);
 
-    clearInterval(instance.interval);
+    sequence.start();
+
+    this.activeSequence = sequence;
   };
 
-// TODO - also pause when AJAX is in progress
+  Engine.prototype.stop = function() {
+    clearInterval(this.interval);
+  };
+
+  Engine.prototype.stopSequence = function(sequence) {
+    console.log('stopped', sequence.name);
+
+    sequence.stop();
+
+    delete this.activeSequence;
+  };
+
+// TODO - also stop when AJAX is in progress
 // XMLHttpRequest.prototype.open = function(a,b) {
 //     console.log(arguments);
 // }
