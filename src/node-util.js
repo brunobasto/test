@@ -12,30 +12,38 @@ define(function() {
       var previousSibling = node.previousSibling;
 
       while (previousSibling !== null) {
-        if (NodeUtil.isNode(previousSibling)) {
-          index++;
-        }
+        index++;
 
         previousSibling = previousSibling.previousSibling;
       }
 
-      var tagName = node.tagName.toLowerCase();
+      var path = [];
 
-      if (index > 0) {
-        tagName += ':nth-child(' + index + ')';
-      }
-
-      var path = [tagName];
-
-      while (node.parentElement) {
-        node = node.parentElement;
-
+      do {
         path.push(node.tagName.toLowerCase());
-      }
+
+        node = node.parentElement;
+      } while (node);
 
       path.reverse();
 
-      return path.join(' > ');
+      var tag = path.pop(),
+          result = path.join(' > ');
+
+      if (index > 0) {
+        result += ':nth-child(' + index + ')';
+      }
+      else {
+        result += ' > ' + tag;
+      }
+
+      return result;
+    },
+
+    random: function() {
+      var elements = document.querySelectorAll('*');
+
+      return elements[Math.floor(Math.random() * elements.length)];
     }
   };
 

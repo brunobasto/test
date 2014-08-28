@@ -3,6 +3,7 @@
 define(['node-util'], function(NodeUtil) {
   describe('NodeUtil', function() {
     beforeEach(function() {
+      document.body.innerHTML = '';
     });
 
     afterEach(function() {
@@ -31,7 +32,19 @@ define(['node-util'], function(NodeUtil) {
 
       assert.notEqual(path, 'html > body > div > div > div');
 
-      assert.equal(path, 'html > body > div > div > div:nth-child(2)');
+      assert.equal(path, 'html > body > div > div:nth-child(2)');
+    });
+
+    it('.random() should return a node in the DOM.', function() {
+      var node = NodeUtil.random();
+
+      assert.notEqual(null, node);
+    });
+
+    it('.isNode() should return true when test is a node and false otherwise', function() {
+      assert.equal(false, NodeUtil.isNode(document.createTextNode('Hello')));
+
+      assert.equal(true, NodeUtil.isNode(document.createElement('div')));
     });
   });
 });
