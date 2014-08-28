@@ -1,6 +1,7 @@
 {
   "name": "crazy-clicker",
   "devDependencies": {
-    "requirejs": "~2.1.14"
+    "requirejs": "~2.1.14",
+    "underscore": "~1.7.0"
   }
 }
