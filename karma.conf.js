@@ -21,6 +21,7 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
+      'lib/underscore/underscore.js',
       'test/test-main.js',
       {pattern: 'src/*.js', included: false},
       {pattern: 'test/*.js', included: false}
