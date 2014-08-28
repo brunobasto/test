@@ -13,11 +13,23 @@ define(['event-util'], function(EventUtil) {
 
       var handler = sinon.spy();
 
-      node.addEventListener('click', handler);
+      EventUtil.attach(node, 'click', handler);
 
       EventUtil.simulate(node, 'click');
 
-      assert(handler.called);
+      assert(handler.calledOnce, 'Handler should be called once.');
+    });
+
+    it('.attach() should add a listener to the desired event.', function() {
+      var node = document.createElement('div');
+
+      var handler = sinon.spy();
+
+      EventUtil.attach(node, 'click', handler);
+
+      EventUtil.simulate(node, 'click');
+
+      assert(handler.calledOnce, 'Handler should be called once.');
     });
   });
 });

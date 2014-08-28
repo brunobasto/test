@@ -1,6 +1,8 @@
 'use strict';
 
 define(function() {
+  var modern = !!document.addEventListener;
+
   var EventUtil = {
     simulate: function(el, etype) {
       if (el.fireEvent) {
@@ -13,6 +15,13 @@ define(function() {
 
         el.dispatchEvent(evObj);
       }
+    },
+
+    attach: function(el, etype, fn) {
+      var addMethod = modern ? 'addEventListener' : 'attachEvent',
+          prefix = modern ? '' : 'on';
+
+      el[addMethod](prefix + etype, fn, false);
     }
   };
 
