@@ -1,6 +1,8 @@
 'use strict';
 
-define(['underscore', 'action'], function(_, Action) {
+define(['underscore', 'action', 'node-util'], function(_, Action, NodeUtil) {
+  var INDEX_INACTIVE = -1;
+
   function Sequence(config) {
     this.config = _.defaults(
       config || {},
@@ -13,18 +15,20 @@ define(['underscore', 'action'], function(_, Action) {
       throw new Error('Please especify a name for your Sequence!');
     }
 
-    this.currentIndex = -1;
+    this.currentIndex = INDEX_INACTIVE;
 
     this.name = this.config.name;
 
     this.setActions(this.config.actions);
   };
 
+  Sequence.INDEX_INACTIVE = INDEX_INACTIVE;
+
   Sequence.prototype.getActions = function() {
     return this.actions;
   };
 
-  Sequence.prototype.getContext = function() {
+  Sequence.prototype.getContextNode = function() {
     var config = this.config,
         context = config.context;
 
@@ -35,40 +39,51 @@ define(['underscore', 'action'], function(_, Action) {
     return this.currentIndex;
   };
 
-  Sequence.prototype.getTrigger = function() {
+  Sequence.prototype.getTriggerNode = function() {
     var config = this.config,
         trigger = config.trigger;
+
+    if (trigger === '#random') {
+      return NodeUtil.random();
+    }
 
     return document.querySelector(trigger);
   };
 
   Sequence.prototype.isActive = function() {
-    return (this.getCurrentIndex() > -1) && (this.getCurrentIndex() < this.actions.length);
+    return (this.getCurrentIndex() > INDEX_INACTIVE) && (this.getCurrentIndex() < this.actions.length);
   };
 
   Sequence.prototype.isEligible = function(el) {
-    var config = this.config,
-        context = this.getContext(),
-        trigger = this.getTrigger();
+    var config = this.config;
 
-    if (trigger) {
-      return el === trigger;
+    // sequences without actions are always ineligible
+    if (!this.actions.length) {
+      return false;
     }
 
-    if (context) {
-      return el === context;
+    if (config.trigger) {
+      if (config.trigger === '#any') {
+        return true;
+      }
+
+      return el === this.getTriggerNode();
     }
 
     return false;
   };
 
   Sequence.prototype.next = function() {
-    this.currentIndex++;
+    if (!this.isActive()) {
+      throw new Error('You must start a sequence before trying yo run it.');
+    }
 
     this.actions[this.getCurrentIndex()].run();
 
-    if (this.getCurrentIndex() >= this.actions.length - 1) {
-      this.currentIndex = -1;
+    this.currentIndex++;
+
+    if (this.getCurrentIndex() >= this.actions.length) {
+      this.stop();
     }
   };
 
@@ -82,6 +97,16 @@ define(['underscore', 'action'], function(_, Action) {
 
         instance.actions.push(new Action(action));
     });
+  };
+
+  Sequence.prototype.start = function() {
+    this.stop();
+
+    this.currentIndex = 0;
+  };
+
+  Sequence.prototype.stop = function() {
+    this.currentIndex = INDEX_INACTIVE;
   };
 
   return Sequence;
