@@ -2,21 +2,22 @@
 
 define(['underscore', 'action'], function(_, Action) {
   function Sequence(config) {
-    _.defaults(config, {
-      actions: []
-    });
+    this.config = _.defaults(
+      config || {},
+      {
+        actions: []
+      }
+    );
 
-    this.config = config;
-
-    if (config.name === undefined) {
+    if (!this.config.name) {
       throw new Error('Please especify a name for your Sequence!');
     }
 
-    this.name = config.name;
-
     this.currentIndex = -1;
 
-    this.setActions(config.actions);
+    this.name = this.config.name;
+
+    this.setActions(this.config.actions);
   };
 
   Sequence.prototype.getActions = function() {
