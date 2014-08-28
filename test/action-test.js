@@ -68,6 +68,7 @@ define(['action', 'sequence'], function(Action, Sequence) {
 
       action = new Action({
         event: 'click',
+        selector: 'body',
         sequence: new Sequence({
           name: 'test'
         })
@@ -79,26 +80,6 @@ define(['action', 'sequence'], function(Action, Sequence) {
     });
 
     it('.getContext() should throw errors if context is incorrect.', function() {
-      var action = new Action({
-        sequence: new Sequence({
-          name: 'test'
-        })
-      });
-
-      expect(function() {
-        action.getContext();
-      }).to.throw(Error);
-
-      action = new Action({
-        context: 'click',
-        sequence: new Sequence({
-          name: 'test'
-        })
-      });
-
-      expect(function() {
-        action.getContext();
-      }).not.to.throw(Error);
     });
   });
 });
