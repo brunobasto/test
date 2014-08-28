@@ -42,11 +42,11 @@
     });
   </script>
 
-  <script type="text/javascript">
-  require(['engine', 'sequence-registry'], function(Engine, SequenceRegistry) {
-    var sequences = SequenceRegistry.getSingleton();
+  <iframe id="frame" src="" frameborder="0"></iframe>
 
-    sequences.register(
+  <script type="text/javascript">
+  require(['engine'], function(Engine) {
+    Engine.registry.register(
       {
         name: 'login-sequence',
         context: 'html > body > form.login',
@@ -70,11 +70,11 @@
       }
     );
 
-    sequences.register(
+    Engine.registry.register(
       {
         name: 'menu-sequence',
         context: 'html > body',
-        trigger: 'ul',
+        trigger: '#random',
         pauseOnEnd: true,
         actions: [
           {
@@ -91,11 +91,11 @@
       }
     );
 
-    var clicker = new Engine({
+    var engine = new Engine({
       interval: 50
     });
 
-    clicker.start();
+    engine.start();
   });
   </script>
 </body>
