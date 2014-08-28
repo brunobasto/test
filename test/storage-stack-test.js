@@ -22,8 +22,14 @@ define(['storage-stack'], function(StorageStack) {
       }).not.to.throw(Error);
     });
 
-    it('.items() should be an array.', function() {
+    it('.items() should allways return an array.', function() {
       var array = storage.items();
+
+      expect(array).to.be.Array;
+
+      localStorage.setItem(storage.key, 'this.,is-not=an%array');
+
+      array = storage.items();
 
       expect(array).to.be.Array;
     });
