@@ -1,71 +1,86 @@
 'use strict';
 
-define(function() {
+define(['underscore', 'action'], function(_, Action) {
   function Sequence(config) {
-    this.lastContext;
-
-    this.currentIndex = 0;
+    _.defaults(config, {
+      actions: []
+    });
 
     this.config = config;
-  };
 
-  Sequence.prototype.validate = function(el) {
-    var config = this.config;
-
-    if (config.trigger && this.validateTrigger(el)) {
-      return true;
+    if (config.name === undefined) {
+      throw new Error('Please especify a name for your Sequence!');
     }
 
-    if (!config.trigger && this.validateContext(el)) {
-      return true;
+    this.name = config.name;
+
+    this.currentIndex = -1;
+
+    this.setActions(config.actions);
+  };
+
+  Sequence.prototype.getActions = function() {
+    return this.actions;
+  };
+
+  Sequence.prototype.getContext = function() {
+    var config = this.config,
+        context = config.context;
+
+    return document.querySelector(context);
+  };
+
+  Sequence.prototype.getCurrentIndex = function() {
+    return this.currentIndex;
+  };
+
+  Sequence.prototype.getTrigger = function() {
+    var config = this.config,
+        trigger = config.trigger;
+
+    return document.querySelector(trigger);
+  };
+
+  Sequence.prototype.isActive = function() {
+    return (this.getCurrentIndex() > -1) && (this.getCurrentIndex() < this.actions.length);
+  };
+
+  Sequence.prototype.isEligible = function(el) {
+    var config = this.config,
+        context = this.getContext(),
+        trigger = this.getTrigger();
+
+    if (trigger) {
+      return el === trigger;
+    }
+
+    if (context) {
+      return el === context;
     }
 
     return false;
   };
 
-  Sequence.prototype.getNextAction = function() {
-    var config = this.config,
-        actions = config.actions;
-
-    var action = actions[this.currentIndex];
-
+  Sequence.prototype.next = function() {
     this.currentIndex++;
 
-    return action;
-  };
+    this.actions[this.getCurrentIndex()].run();
 
-  Sequence.prototype.start = function(engine) {
-    console.log('started sequence [', this.config.name, ']');
-
-    engine.activeSequence = this;
-  };
-
-  Sequence.prototype.stop = function(engine) {
-    var config = this.config;
-
-    this.currentIndex = 0;
-
-    delete engine.activeSequence;
-
-    console.log('stopped sequence [', this.config.name, ']');
-
-    if (config.pauseOnEnd) {
-      engine.pause();
+    if (this.getCurrentIndex() >= this.actions.length - 1) {
+      this.currentIndex = -1;
     }
   };
 
-  Sequence.prototype.validateContext = function(el) {
-    var config = this.config,
-        context = config.context;
+  Sequence.prototype.setActions = function(actions) {
+    var instance = this;
 
-    return document.querySelector(context) === el;
-  };
+    instance.actions = [];
 
-  Sequence.prototype.validateTrigger = function(el) {
-    var config = this.config,
-        trigger = config.trigger;
+    _.each(actions, function(action) {
+        action.sequence = instance;
 
-    return document.querySelector(trigger) === el;
+        instance.actions.push(new Action(action));
+    });
   };
 
   return Sequence;
