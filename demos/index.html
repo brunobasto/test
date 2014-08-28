@@ -2,64 +2,101 @@
 <head>
 </head>
 <body>
-    <h1>Home</h1>
+  <h1>Home</h1>
 
-    <a xhref="index.html">Home</a>
-    <a id="docs" xhref="docs.html">Docs</a>
-    <a xhref="about.html">About</a>
+  <a xhref="index.html">Home</a>
+  <a id="docs" xhref="docs.html">Docs</a>
+  <a xhref="about.html">About</a>
 
-    <form action="" class="login">
-      <input type="text" class="username" />
+  <form action="" class="login">
+    <input type="text" class="username" />
 
-      <input type="text" class="password" />
+    <input type="text" class="password" />
 
-      <input type="submit" value="submit" />
-    </form>
+    <input type="submit" value="submit" />
+  </form>
 
-    <script type="text/javascript">
-    var docs = document.querySelector('#docs');
+  <ul>
+    <li><a xonclick="console.log('Home')">Home</a></li>
+    <li><a xonclick="console.log('News')">News</a></li>
+    <li><a xonclick="console.log('Contact')">Contact</a></li>
+    <li><a xonclick="console.log('About')">About</a></li>
+  </ul>
 
-    docs.addEventListener('click', function(event) {
-        event.preventDefault();
+  <script type="text/javascript">
+  var docs = document.querySelector('#docs');
 
-        // please.throwSomeError;
+  docs.addEventListener('click', function(event) {
+      event.preventDefault();
+
+      please.throwSomeError;
+  });
+  </script>
+
+  <script data-main="../src/engine" src="../lib/requirejs/require.js"></script>
+  <script>
+    require.config({
+      paths: {
+        'underscore': '../lib/underscore/underscore'
+      }
     });
-    </script>
+  </script>
 
-    <script data-main="../src/clicker-engine" src="../bower_components/requirejs/require.js"></script>
+  <script type="text/javascript">
+  require(['engine', 'sequence-registry'], function(Engine, SequenceRegistry) {
+    var sequences = SequenceRegistry.getSingleton();
 
-    <script type="text/javascript">
-    require(['clicker-engine', 'sequence-registry'], function(ClickerEngine, SequenceRegistry) {
-      var sequences = SequenceRegistry.getSingleton();
+    sequences.register(
+      {
+        name: 'login-sequence',
+        context: 'html > body > form.login',
+        trigger: 'html > body > form.login',
+        pauseOnEnd: true,
+        actions: [
+          {
+              selector: 'html > body > form.login',
+              context: '#parent',
+              event: 'click'
+          },
+          {
+              selector: 'input.username',
+              event: 'focus',
+          }
+          // ,{
+          //     selector: 'input[type=submit]',
+          //     event: 'click',
+          // }
+        ]
+      }
+    );
 
-      sequences.register(
-        {
-          name: 'login-sequence',
-          context: 'html > body > form.login',
-          trigger: 'html > body > form.login',
-          pauseOnEnd: true,
-          actions: [
-            {
-                selector: 'html > body > div.login',
-                context: '#parent',
-                event: 'click'
-            },
-            {
-                selector: 'input.username',
-                event: 'focus',
-            }
-            // ,{
-            //     selector: 'input[type=submit]',
-            //     event: 'click',
-            // }
-          ]
-        }
-      );
+    sequences.register(
+      {
+        name: 'menu-sequence',
+        context: 'html > body',
+        trigger: 'ul',
+        pauseOnEnd: true,
+        actions: [
+          {
+              selector: 'ul li',
+              context: '#parent',
+              event: 'click'
+          },
+          {
+              selector: 'ul li a',
+              context: '#parent',
+              event: 'click',
+          }
+        ]
+      }
+    );
 
-      var clicker = new ClickerEngine();
-
-      clicker.start();
+    var clicker = new Engine({
+      interval: 50
     });
-    </script>
+
+    clicker.start();
+  });
+  </script>
 </body>
 </html>
