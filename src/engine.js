@@ -2,13 +2,14 @@
 
 define(
 [
-  'underscore',
+  'ajax-listener',
   'event-util',
   'node-util',
+  'sequence-registry',
   'storage-stack',
-  'sequence-registry'
+  'underscore',
 ],
-function(_, EventUtil, NodeUtil, StorageStack, SequenceRegistry) {
+function(AjaxListener, EventUtil, NodeUtil, SequenceRegistry, StorageStack, _) {
   var Engine = function(config) {
     this.config = _.defaults(
       config || {},
@@ -121,11 +122,11 @@ function(_, EventUtil, NodeUtil, StorageStack, SequenceRegistry) {
   };
 
   Engine.prototype.startSequence = function(sequence) {
-    console.log('started', sequence.name);
-
     sequence.start();
 
     this.activeSequence = sequence;
+
+    console.log('[Engine] Started sequence "', sequence.name, '".');
   };
 
   Engine.prototype.stop = function() {
@@ -133,13 +134,12 @@ function(_, EventUtil, NodeUtil, StorageStack, SequenceRegistry) {
   };
 
   Engine.prototype.stopSequence = function(sequence) {
-    console.log('stopped', sequence.name);
-
     sequence.stop();
 
     delete this.activeSequence;
-  };
 
+    console.log('[Engine] Stopped sequence "', sequence.name, '".');
+  };
 
   return Engine;
 });
