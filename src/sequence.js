@@ -77,14 +77,21 @@ define(['underscore', 'action', 'node-util'], function(_, Action, NodeUtil) {
 
   Sequence.prototype.next = function() {
     if (!this.isActive()) {
-      throw new Error('You must start a sequence before trying yo run it.');
+      throw new Error('You must start a sequence before trying to run it.');
     }
 
-    this.actions[this.getCurrentIndex()].run();
+    try {
+      this.actions[this.getCurrentIndex()].run();
 
-    this.currentIndex++;
+      this.currentIndex++;
 
-    if (this.getCurrentIndex() >= this.actions.length) {
+      if (this.getCurrentIndex() >= this.actions.length) {
+        this.stop();
+      }
+    }
+    catch (e) {
+      console.log(e);
+
       this.stop();
     }
   };
