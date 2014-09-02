@@ -8,14 +8,6 @@
   <a id="docs" xhref="docs.html">Docs</a>
   <a xhref="about.html">About</a>
 
-  <form action="" class="login" id="form">
-    <input type="text" class="username" id="username" value="" />
-
-    <input type="text" class="password" />
-
-    <input type="submit" value="submit" />
-  </form>
-
   <ul>
     <li><a>Home</a></li>
     <li><a>News</a></li>
@@ -23,23 +15,13 @@
     <li><a>About</a></li>
   </ul>
 
-  <script type="text/javascript">
-  var docs = document.querySelector('#docs');
+  <form action="" class="login" id="form">
+    <input type="text" class="username" id="username" value="" />
 
-  docs.addEventListener('click', function(event) {
-    event.preventDefault();
+    <input type="text" class="password" />
 
-    // please.throwSomeError;
-  });
-
-  var docs = document.querySelector('#form');
-
-  docs.addEventListener('submit', function(event) {
-    console.log('Prevented attempt to submit.');
-
-    event.preventDefault();
-  });
-  </script>
+    <input type="submit" value="submit" />
+  </form>
 
   <script data-main="../src/engine" src="../lib/requirejs/require.js"></script>
   <script>
@@ -50,7 +32,23 @@
     });
   </script>
 
-  <iframe id="frame" src="" frameborder="0"></iframe>
+  <script type="text/javascript">
+  var docs = document.querySelector('#docs');
+
+  docs.addEventListener('click', function(event) {
+    event.preventDefault();
+
+    // please.throwSomeError;
+  });
+
+  var form = document.querySelector('#form');
+
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    console.log('Prevented attempt to submit.');
+  });
+  </script>
 
   <script type="text/javascript">
   require(['engine', 'ajax-listener', 'event-util'], function(Engine, AjaxListener, EventUtil) {
