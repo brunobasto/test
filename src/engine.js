@@ -103,7 +103,7 @@ function(AjaxListener, EventUtil, NodeUtil, SequenceRegistry, StorageStack, _) {
 
       sequence.next();
     }
-    
+
     if (!sequence) {
       EventUtil.simulate(element, 'click');
     }
@@ -137,6 +137,10 @@ function(AjaxListener, EventUtil, NodeUtil, SequenceRegistry, StorageStack, _) {
     sequence.stop();
 
     delete this.activeSequence;
+
+    if (sequence.pauseOnEnd) {
+      this.stop();
+    }
 
     console.log('[Engine] Stopped sequence "', sequence.name, '".');
   };

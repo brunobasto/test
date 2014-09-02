@@ -7,7 +7,8 @@ define(['underscore', 'action', 'node-util'], function(_, Action, NodeUtil) {
     this.config = _.defaults(
       config || {},
       {
-        actions: []
+        actions: [],
+        pauseOnEnd: false
       }
     );
 
@@ -18,6 +19,7 @@ define(['underscore', 'action', 'node-util'], function(_, Action, NodeUtil) {
     this.currentIndex = INDEX_INACTIVE;
 
     this.name = this.config.name;
+    this.pauseOnEnd = config.pauseOnEnd;
 
     this.setActions(this.config.actions);
   }
