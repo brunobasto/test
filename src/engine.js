@@ -28,6 +28,8 @@ function(_, EventUtil, NodeUtil, StorageStack, SequenceRegistry) {
       }
     );
 
+    this.ajaxListener = new AjaxListener();
+
     this.currentElement = null;
 
     this.storage = new StorageStack('clicks');
@@ -75,6 +77,12 @@ function(_, EventUtil, NodeUtil, StorageStack, SequenceRegistry) {
   Engine.prototype.run = function() {
     var element = this.currentElement,
         eligibles = this.getEligibleSequences(element);
+
+    if (this.ajaxListener.isAjaxInProgress()) {
+      console.log('[Engine] Waiting for ajax requests.');
+
+      return;
+    }
 
     var sequence;
 
@@ -132,10 +140,6 @@ function(_, EventUtil, NodeUtil, StorageStack, SequenceRegistry) {
     delete this.activeSequence;
   };
 
-// TODO - also stop when AJAX is in progress
-// XMLHttpRequest.prototype.open = function(a,b) {
-//     console.log(arguments);
-// }
 
   return Engine;
 });
