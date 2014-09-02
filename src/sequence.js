@@ -20,7 +20,7 @@ define(['underscore', 'action', 'node-util'], function(_, Action, NodeUtil) {
     this.name = this.config.name;
 
     this.setActions(this.config.actions);
-  };
+  }
 
   Sequence.INDEX_INACTIVE = INDEX_INACTIVE;
 

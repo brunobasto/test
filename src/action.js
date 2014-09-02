@@ -1,6 +1,6 @@
 'use strict';
 
-define(['event-util'], function(EventUtil) {
+define(['underscore', 'event-util'], function(_, EventUtil) {
   function Action(config) {
     _.defaults(config, {
     });
@@ -14,7 +14,7 @@ define(['event-util'], function(EventUtil) {
     }
 
     this.sequence = sequence;
-  };
+  }
 
   Action.prototype.getElement = function() {
     var config = this.config,

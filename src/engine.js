@@ -76,8 +76,10 @@ function(_, EventUtil, NodeUtil, StorageStack, SequenceRegistry) {
     var element = this.currentElement,
         eligibles = this.getEligibleSequences(element);
 
+    var sequence;
+
     if (this.hasActiveSequence()) {
-      var sequence = this.getActiveSequence();
+      sequence = this.getActiveSequence();
 
       sequence.next();
 
@@ -86,13 +88,14 @@ function(_, EventUtil, NodeUtil, StorageStack, SequenceRegistry) {
       }
     }
     else if (eligibles.length) {
-      var sequence = eligibles[_.random(0, eligibles.length - 1)];
+      sequence = eligibles[_.random(0, eligibles.length - 1)];
 
       this.startSequence(sequence);
 
       sequence.next();
     }
-    else {
+    
+    if (!sequence) {
       EventUtil.simulate(element, 'click');
     }
   };

@@ -1,0 +1,4 @@
+{
+  "predef": ["console", "define"],
+  "strict": false
+}

@@ -10,7 +10,7 @@ define(function() {
     }
 
     this.key = key;
-  }
+  };
 
   StorageStack.prototype.destroy = function() {
     localStorage.removeItem(this.key);
