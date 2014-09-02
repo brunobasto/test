@@ -3,6 +3,7 @@
 define(['underscore', 'event-util'], function(_, EventUtil) {
   function Action(config) {
     _.defaults(config, {
+      text: ''
     });
 
     this.config = config;
@@ -45,46 +46,23 @@ define(['underscore', 'event-util'], function(_, EventUtil) {
   };
 
   Action.prototype.run = function() {
-    EventUtil.simulate(this.getElement(), this.getEvent());
+    var config = this.config,
+        element = this.getElement(),
+        event = this.getEvent();
+
+    if (event === 'text') {
+      EventUtil.simulateTextInput(element, config.text);
+    }
+    else {
+      EventUtil.simulate(element, event);
+    }
   };
 
   return Action;
 });
 
-// this logic should be here
-/*
-ClickerEngine.prototype.processAction = function(action) {
-  var instance = this,
-      context = document,
-      element,
-      parsed = {},
-      selector = action.selector;
-
-  if (action.context) {
-    context = document.querySelector(action.context) || document;
-  }
-
-  if (selector === '#random') {
-    var elements = context.querySelectorAll('*');
-
-    element = elements[Math.floor(Math.random() * elements.length)];
-  }
-  else {
-    element = context.querySelector(selector);
-  }
-
-  if (element && instance.isExcludedElement(element)) {
-    element = null;
-  }
-
-  parsed.element = element || document.body;
-  parsed.event = action.event || 'click';
-
-  return parsed;
-};
-
 // excluded elements cannot run
-
+/*
 ClickerEngine.prototype.isExcludedElement = function(el) {
   var instance = this,
       exceptions = instance.configs.exceptions;

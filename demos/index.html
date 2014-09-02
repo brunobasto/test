@@ -8,8 +8,8 @@
   <a id="docs" xhref="docs.html">Docs</a>
   <a xhref="about.html">About</a>
 
-  <form action="" class="login">
-    <input type="text" class="username" />
+  <form action="" class="login" id="form">
+    <input type="text" class="username" id="username" value="" />
 
     <input type="text" class="password" />
 
@@ -17,19 +17,27 @@
   </form>
 
   <ul>
-    <li><a xonclick="console.log('Home')">Home</a></li>
-    <li><a xonclick="console.log('News')">News</a></li>
-    <li><a xonclick="console.log('Contact')">Contact</a></li>
-    <li><a xonclick="console.log('About')">About</a></li>
+    <li><a>Home</a></li>
+    <li><a>News</a></li>
+    <li><a>Contact</a></li>
+    <li><a>About</a></li>
   </ul>
 
   <script type="text/javascript">
   var docs = document.querySelector('#docs');
 
   docs.addEventListener('click', function(event) {
-      event.preventDefault();
+    event.preventDefault();
 
-      please.throwSomeError;
+    // please.throwSomeError;
+  });
+
+  var docs = document.querySelector('#form');
+
+  docs.addEventListener('submit', function(event) {
+    console.log('Prevented attempt to submit.');
+
+    event.preventDefault();
   });
   </script>
 
@@ -45,7 +53,7 @@
   <iframe id="frame" src="" frameborder="0"></iframe>
 
   <script type="text/javascript">
-  require(['engine'], function(Engine) {
+  require(['engine', 'ajax-listener', 'event-util'], function(Engine, AjaxListener, EventUtil) {
     Engine.registry.register(
       {
         name: 'login-sequence',
@@ -54,18 +62,19 @@
         pauseOnEnd: true,
         actions: [
           {
-              selector: 'html > body > form.login',
-              context: '#parent',
-              event: 'click'
+              selector: 'input.username',
+              event: 'text',
+              text: 'myname'
           },
           {
-              selector: 'input.username',
-              event: 'focus',
+              selector: 'input.password',
+              event: 'text',
+              text: 'mypassword'
+          },
+          {
+              selector: 'input[type=submit]',
+              event: 'click',
           }
-          // ,{
-          //     selector: 'input[type=submit]',
-          //     event: 'click',
-          // }
         ]
       }
     );
@@ -75,7 +84,7 @@
         name: 'menu-sequence',
         context: 'html > body',
         trigger: '#random',
-        pauseOnEnd: true,
+        pauseOnEnd: false,
         actions: [
           {
               selector: 'ul li',
