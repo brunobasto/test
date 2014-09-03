@@ -4,6 +4,13 @@ define(['underscore'], function(_) {
   var modern = !!document.addEventListener;
 
   var EventUtil = {
+    attach: function(el, etype, fn) {
+      var addMethod = modern ? 'addEventListener' : 'attachEvent',
+          prefix = modern ? '' : 'on';
+
+      el[addMethod](prefix + etype, fn, false);
+    },
+
     simulate: function(el, etype) {
       if (el.fireEvent) {
         el.fireEvent('on' + etype);
@@ -18,40 +25,64 @@ define(['underscore'], function(_) {
     },
 
     simulateTextInput: function(el, text) {
-      var keyboardEvent, textEvent;
+      var instance = this, keyDownEvent, keyPressEvent, keyUpEvent, textEvent;
+
+      // focus before interacting with it
+      el.focus();
 
       _.each(text, function(character) {
-        keyboardEvent = document.createEvent('KeyboardEvent');
+        // keyDown
+        keyDownEvent = document.createEvent('KeyboardEvent');
 
-        Object.defineProperty(keyboardEvent, 'keyCode', {
-          get: function() {
-            return this.keyCodeVal;
-          }
-        });
+        instance._defineKeyEventProperties(keyDownEvent);
 
-        Object.defineProperty(keyboardEvent, 'which', {
-          get: function() {
-            return this.keyCodeVal;
-          }
-        });
+        keyDownEvent.initKeyboardEvent('keydown', true, true, document.defaultView, 0, 0, 0, 0, 0, character.charCodeAt(0));
 
-        keyboardEvent.initKeyboardEvent('keydown', true, true, window, 0, 0, 0, 0, 0, character.charCodeAt(0));
+        el.dispatchEvent(keyDownEvent);
 
-        el.dispatchEvent(keyboardEvent);
+        // keyPress
+        keyPressEvent = document.createEvent('KeyboardEvent');
 
+        instance._defineKeyEventProperties(keyPressEvent);
+
+        keyPressEvent.initKeyboardEvent('keypress', true, true, document.defaultView, 0, 0, 0, 0, 0, character.charCodeAt(0));
+
+        el.dispatchEvent(keyPressEvent);
+
+        // keyUp
+        keyUpEvent = document.createEvent('KeyboardEvent');
+
+        instance._defineKeyEventProperties(keyUpEvent);
+
+        keyUpEvent.initKeyboardEvent('keyup', true, true, document.defaultView, 0, 0, 0, 0, 0, character.charCodeAt(0));
+
+        el.dispatchEvent(keyUpEvent);
+
+        // textInput
         textEvent = document.createEvent('TextEvent');
 
-        textEvent.initTextEvent('textInput', true, true, window, character, 9, 'en-US');
+        textEvent.initTextEvent('textInput', true, true, document.defaultView, character, 9, 'en-US');
 
         el.dispatchEvent(textEvent);
       });
     },
 
-    attach: function(el, etype, fn) {
-      var addMethod = modern ? 'addEventListener' : 'attachEvent',
-          prefix = modern ? '' : 'on';
+    _defineKeyEventProperties: function(keyEvent) {
+      try {
+        Object.defineProperty(keyEvent, 'keyCode', {
+          get: function() {
+            return this.keyCodeVal;
+          }
+        });
 
-      el[addMethod](prefix + etype, fn, false);
+        Object.defineProperty(keyEvent, 'which', {
+          get: function() {
+            return this.keyCodeVal;
+          }
+        });
+      }
+      catch (e) {
+      }
     }
   };
 
