@@ -1,90 +1,92 @@
-'use strict';
+(function() {
+  'use strict';
 
-define(['underscore'], function(_) {
-  var modern = !!document.addEventListener;
+  define(['underscore'], function(_) {
+    var modern = !!document.addEventListener;
 
-  var EventUtil = {
-    attach: function(el, etype, fn) {
-      var addMethod = modern ? 'addEventListener' : 'attachEvent',
-          prefix = modern ? '' : 'on';
+    var EventUtil = {
+      attach: function(el, etype, fn) {
+        var addMethod = modern ? 'addEventListener' : 'attachEvent',
+            prefix = modern ? '' : 'on';
 
-      el[addMethod](prefix + etype, fn, false);
-    },
+        el[addMethod](prefix + etype, fn, false);
+      },
 
-    simulate: function(el, etype) {
-      if (el.fireEvent) {
-        el.fireEvent('on' + etype);
-      }
-      else {
-        var evObj = document.createEvent('Events');
+      simulate: function(el, etype) {
+        if (el.fireEvent) {
+          el.fireEvent('on' + etype);
+        }
+        else {
+          var evObj = document.createEvent('Events');
 
-        evObj.initEvent(etype, true, true);
+          evObj.initEvent(etype, true, true);
 
-        el.dispatchEvent(evObj);
-      }
-    },
+          el.dispatchEvent(evObj);
+        }
+      },
 
-    simulateTextInput: function(el, text) {
-      var instance = this, keyDownEvent, keyPressEvent, keyUpEvent, textEvent;
+      simulateTextInput: function(el, text) {
+        var instance = this, keyDownEvent, keyPressEvent, keyUpEvent, textEvent;
 
-      // focus before interacting with it
-      el.focus();
+        // focus before interacting with it
+        el.focus();
 
-      _.each(text, function(character) {
-        // keyDown
-        keyDownEvent = document.createEvent('KeyboardEvent');
+        _.each(text, function(character) {
+          // keyDown
+          keyDownEvent = document.createEvent('KeyboardEvent');
 
-        instance._defineKeyEventProperties(keyDownEvent);
+          instance._defineKeyEventProperties(keyDownEvent);
 
-        keyDownEvent.initKeyboardEvent('keydown', true, true, document.defaultView, 0, 0, 0, 0, 0, character.charCodeAt(0));
+          keyDownEvent.initKeyboardEvent('keydown', true, true, document.defaultView, 0, 0, 0, 0, 0, character.charCodeAt(0));
 
-        el.dispatchEvent(keyDownEvent);
+          el.dispatchEvent(keyDownEvent);
 
-        // keyPress
-        keyPressEvent = document.createEvent('KeyboardEvent');
+          // keyPress
+          keyPressEvent = document.createEvent('KeyboardEvent');
 
-        instance._defineKeyEventProperties(keyPressEvent);
+          instance._defineKeyEventProperties(keyPressEvent);
 
-        keyPressEvent.initKeyboardEvent('keypress', true, true, document.defaultView, 0, 0, 0, 0, 0, character.charCodeAt(0));
+          keyPressEvent.initKeyboardEvent('keypress', true, true, document.defaultView, 0, 0, 0, 0, 0, character.charCodeAt(0));
 
-        el.dispatchEvent(keyPressEvent);
+          el.dispatchEvent(keyPressEvent);
 
-        // keyUp
-        keyUpEvent = document.createEvent('KeyboardEvent');
+          // keyUp
+          keyUpEvent = document.createEvent('KeyboardEvent');
 
-        instance._defineKeyEventProperties(keyUpEvent);
+          instance._defineKeyEventProperties(keyUpEvent);
 
-        keyUpEvent.initKeyboardEvent('keyup', true, true, document.defaultView, 0, 0, 0, 0, 0, character.charCodeAt(0));
+          keyUpEvent.initKeyboardEvent('keyup', true, true, document.defaultView, 0, 0, 0, 0, 0, character.charCodeAt(0));
 
-        el.dispatchEvent(keyUpEvent);
+          el.dispatchEvent(keyUpEvent);
 
-        // textInput
-        textEvent = document.createEvent('TextEvent');
+          // textInput
+          textEvent = document.createEvent('TextEvent');
 
-        textEvent.initTextEvent('textInput', true, true, document.defaultView, character, 9, 'en-US');
+          textEvent.initTextEvent('textInput', true, true, document.defaultView, character, 9, 'en-US');
 
-        el.dispatchEvent(textEvent);
-      });
-    },
-
-    _defineKeyEventProperties: function(keyEvent) {
-      try {
-        Object.defineProperty(keyEvent, 'keyCode', {
-          get: function() {
-            return this.keyCodeVal;
-          }
+          el.dispatchEvent(textEvent);
         });
+      },
 
-        Object.defineProperty(keyEvent, 'which', {
-          get: function() {
-            return this.keyCodeVal;
-          }
-        });
-      }
-      catch (e) {
-      }
-    }
-  };
+      _defineKeyEventProperties: function(keyEvent) {
+        try {
+          Object.defineProperty(keyEvent, 'keyCode', {
+            get: function() {
+              return this.keyCodeVal;
+            }
+          });
 
-  return EventUtil;
-});
+          Object.defineProperty(keyEvent, 'which', {
+            get: function() {
+              return this.keyCodeVal;
+            }
+          });
+        }
+        catch (e) {
+        }
+      }
+    };
+
+    return EventUtil;
+  });
+})();

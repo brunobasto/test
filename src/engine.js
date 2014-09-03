@@ -1,149 +1,151 @@
-'use strict';
+(function() {
+  'use strict';
 
-define(
-[
-  'ajax-listener',
-  'event-util',
-  'node-util',
-  'sequence-registry',
-  'storage-stack',
-  'underscore',
-],
-function(AjaxListener, EventUtil, NodeUtil, SequenceRegistry, StorageStack, _) {
-  var Engine = function(config) {
-    this.config = _.defaults(
-      config || {},
-      {
-        allowNavigation: false,
-        exceptions: [
-          {
-            textMatching: /sign\sout/ig
-          },
-          {
-            tagMatching: /script|link|body|html|head/ig
-          }
-        ],
-        interval: 100,
-        stopOnError: false,
-        waitForAjaxRequests: true
-      }
-    );
-
-    this.ajaxListener = new AjaxListener();
-
-    this.currentElement = null;
-
-    this.storage = new StorageStack('clicks');
-
-    this._bindEvents();
-  };
-
-  Engine.registry = SequenceRegistry.getSingleton();
-
-  Engine.prototype._bindEvents = function() {
-  };
-
-  Engine.prototype.computeNextElement = function() {
-    var element = NodeUtil.random();
-
-    this.currentElement = element;
-
-    return element;
-  };
-
-  Engine.prototype.getActiveSequence = function() {
-    return this.activeSequence;
-  };
-
-  Engine.prototype.getEligibleSequences = function(element) {
-    var sequences = [];
-
-    if (!this.hasActiveSequence()) {
-      Engine.registry.each(function(sequence) {
-        if (sequence.isEligible(element)) {
-          sequences.push(sequence);
+  define(
+  [
+    'ajax-listener',
+    'event-util',
+    'node-util',
+    'sequence-registry',
+    'storage-stack',
+    'underscore',
+  ],
+  function(AjaxListener, EventUtil, NodeUtil, SequenceRegistry, StorageStack, _) {
+    var Engine = function(config) {
+      this.config = _.defaults(
+        config || {},
+        {
+          allowNavigation: false,
+          exceptions: [
+            {
+              textMatching: /sign\sout/ig
+            },
+            {
+              tagMatching: /script|link|body|html|head/ig
+            }
+          ],
+          interval: 100,
+          stopOnError: false,
+          waitForAjaxRequests: true
         }
-      });
-    }
+      );
 
-    return sequences;
-  };
+      this.ajaxListener = new AjaxListener();
 
-  Engine.prototype.hasActiveSequence = function() {
-    var activeSequence = this.activeSequence;
+      this.currentElement = null;
 
-    return !!activeSequence && activeSequence.isActive();
-  };
+      this.storage = new StorageStack('clicks');
 
-  Engine.prototype.run = function() {
-    var element = this.currentElement,
-        eligibles = this.getEligibleSequences(element);
+      this._bindEvents();
+    };
 
-    if (this.ajaxListener.isAjaxInProgress()) {
-      console.log('[Engine] Waiting for ajax requests.');
+    Engine.registry = SequenceRegistry.getSingleton();
 
-      return;
-    }
+    Engine.prototype._bindEvents = function() {
+    };
 
-    var sequence;
+    Engine.prototype.computeNextElement = function() {
+      var element = NodeUtil.random();
 
-    if (this.hasActiveSequence()) {
-      sequence = this.getActiveSequence();
+      this.currentElement = element;
 
-      sequence.next();
+      return element;
+    };
 
-      if (!sequence.isActive()) {
-        this.stopSequence(sequence);
+    Engine.prototype.getActiveSequence = function() {
+      return this.activeSequence;
+    };
+
+    Engine.prototype.getEligibleSequences = function(element) {
+      var sequences = [];
+
+      if (!this.hasActiveSequence()) {
+        Engine.registry.each(function(sequence) {
+          if (sequence.isEligible(element)) {
+            sequences.push(sequence);
+          }
+        });
       }
-    }
-    else if (eligibles.length) {
-      sequence = eligibles[_.random(0, eligibles.length - 1)];
 
-      this.startSequence(sequence);
+      return sequences;
+    };
 
-      sequence.next();
-    }
+    Engine.prototype.hasActiveSequence = function() {
+      var activeSequence = this.activeSequence;
 
-    if (!sequence) {
-      EventUtil.simulate(element, 'click');
-    }
-  };
+      return !!activeSequence && activeSequence.isActive();
+    };
 
-  Engine.prototype.start = function() {
-    var instance = this;
+    Engine.prototype.run = function() {
+      var element = this.currentElement,
+          eligibles = this.getEligibleSequences(element);
 
-    this.stop();
+      if (this.ajaxListener.isAjaxInProgress()) {
+        console.log('[Engine] Waiting for ajax requests.');
 
-    this.interval = setInterval(function() {
-      instance.computeNextElement();
+        return;
+      }
 
-      instance.run();
-    }, this.config.interval);
-  };
+      var sequence;
 
-  Engine.prototype.startSequence = function(sequence) {
-    sequence.start();
+      if (this.hasActiveSequence()) {
+        sequence = this.getActiveSequence();
 
-    this.activeSequence = sequence;
+        sequence.next();
 
-    console.log('[Engine] Started sequence "', sequence.name, '".');
-  };
+        if (!sequence.isActive()) {
+          this.stopSequence(sequence);
+        }
+      }
+      else if (eligibles.length) {
+        sequence = eligibles[_.random(0, eligibles.length - 1)];
 
-  Engine.prototype.stop = function() {
-    clearInterval(this.interval);
-  };
+        this.startSequence(sequence);
 
-  Engine.prototype.stopSequence = function(sequence) {
-    sequence.stop();
+        sequence.next();
+      }
 
-    delete this.activeSequence;
+      if (!sequence) {
+        EventUtil.simulate(element, 'click');
+      }
+    };
 
-    if (sequence.pauseOnEnd) {
+    Engine.prototype.start = function() {
+      var instance = this;
+
       this.stop();
-    }
 
-    console.log('[Engine] Stopped sequence "', sequence.name, '".');
-  };
+      this.interval = setInterval(function() {
+        instance.computeNextElement();
 
-  return Engine;
-});
+        instance.run();
+      }, this.config.interval);
+    };
+
+    Engine.prototype.startSequence = function(sequence) {
+      sequence.start();
+
+      this.activeSequence = sequence;
+
+      console.log('[Engine] Started sequence "', sequence.name, '".');
+    };
+
+    Engine.prototype.stop = function() {
+      clearInterval(this.interval);
+    };
+
+    Engine.prototype.stopSequence = function(sequence) {
+      sequence.stop();
+
+      delete this.activeSequence;
+
+      if (sequence.pauseOnEnd) {
+        this.stop();
+      }
+
+      console.log('[Engine] Stopped sequence "', sequence.name, '".');
+    };
+
+    return Engine;
+  });
+})();

@@ -1,122 +1,124 @@
-'use strict';
+(function() {
+  'use strict';
 
-define(['underscore', 'action', 'node-util'], function(_, Action, NodeUtil) {
-  var INDEX_INACTIVE = -1;
+  define(['underscore', 'action', 'node-util'], function(_, Action, NodeUtil) {
+    var INDEX_INACTIVE = -1;
 
-  function Sequence(config) {
-    this.config = _.defaults(
-      config || {},
-      {
-        actions: [],
-        pauseOnEnd: false
+    function Sequence(config) {
+      this.config = _.defaults(
+        config || {},
+        {
+          actions: [],
+          pauseOnEnd: false
+        }
+      );
+
+      if (!this.config.name) {
+        throw new Error('Please especify a name for your Sequence!');
       }
-    );
 
-    if (!this.config.name) {
-      throw new Error('Please especify a name for your Sequence!');
+      this.currentIndex = INDEX_INACTIVE;
+
+      this.name = this.config.name;
+      this.pauseOnEnd = config.pauseOnEnd;
+
+      this.setActions(this.config.actions);
     }
 
-    this.currentIndex = INDEX_INACTIVE;
+    Sequence.INDEX_INACTIVE = INDEX_INACTIVE;
 
-    this.name = this.config.name;
-    this.pauseOnEnd = config.pauseOnEnd;
+    Sequence.prototype.getActions = function() {
+      return this.actions;
+    };
 
-    this.setActions(this.config.actions);
-  }
+    Sequence.prototype.getContextNode = function() {
+      var config = this.config,
+          context = config.context;
 
-  Sequence.INDEX_INACTIVE = INDEX_INACTIVE;
+      return document.querySelector(context);
+    };
 
-  Sequence.prototype.getActions = function() {
-    return this.actions;
-  };
+    Sequence.prototype.getCurrentIndex = function() {
+      return this.currentIndex;
+    };
 
-  Sequence.prototype.getContextNode = function() {
-    var config = this.config,
-        context = config.context;
+    Sequence.prototype.getTriggerNode = function() {
+      var config = this.config,
+          trigger = config.trigger;
 
-    return document.querySelector(context);
-  };
+      if (trigger === '#random') {
+        return NodeUtil.random();
+      }
 
-  Sequence.prototype.getCurrentIndex = function() {
-    return this.currentIndex;
-  };
+      return document.querySelector(trigger);
+    };
 
-  Sequence.prototype.getTriggerNode = function() {
-    var config = this.config,
-        trigger = config.trigger;
+    Sequence.prototype.isActive = function() {
+      return (this.getCurrentIndex() > INDEX_INACTIVE) && (this.getCurrentIndex() < this.actions.length);
+    };
 
-    if (trigger === '#random') {
-      return NodeUtil.random();
-    }
+    Sequence.prototype.isEligible = function(el) {
+      var config = this.config;
 
-    return document.querySelector(trigger);
-  };
+      // sequences without actions are always ineligible
+      if (!this.actions.length) {
+        return false;
+      }
 
-  Sequence.prototype.isActive = function() {
-    return (this.getCurrentIndex() > INDEX_INACTIVE) && (this.getCurrentIndex() < this.actions.length);
-  };
+      if (config.trigger) {
+        if (config.trigger === '#any') {
+          return true;
+        }
 
-  Sequence.prototype.isEligible = function(el) {
-    var config = this.config;
+        return el === this.getTriggerNode();
+      }
 
-    // sequences without actions are always ineligible
-    if (!this.actions.length) {
       return false;
-    }
+    };
 
-    if (config.trigger) {
-      if (config.trigger === '#any') {
-        return true;
+    Sequence.prototype.next = function() {
+      if (!this.isActive()) {
+        throw new Error('You must start a sequence before trying to run it.');
       }
 
-      return el === this.getTriggerNode();
-    }
+      try {
+        this.actions[this.getCurrentIndex()].run();
 
-    return false;
-  };
+        this.currentIndex++;
 
-  Sequence.prototype.next = function() {
-    if (!this.isActive()) {
-      throw new Error('You must start a sequence before trying to run it.');
-    }
+        if (this.getCurrentIndex() >= this.actions.length) {
+          this.stop();
+        }
+      }
+      catch (e) {
+        console.log(e);
 
-    try {
-      this.actions[this.getCurrentIndex()].run();
-
-      this.currentIndex++;
-
-      if (this.getCurrentIndex() >= this.actions.length) {
         this.stop();
       }
-    }
-    catch (e) {
-      console.log(e);
+    };
 
+    Sequence.prototype.setActions = function(actions) {
+      var instance = this;
+
+      instance.actions = [];
+
+      _.each(actions, function(action) {
+          action.sequence = instance;
+
+          instance.actions.push(new Action(action));
+      });
+    };
+
+    Sequence.prototype.start = function() {
       this.stop();
-    }
-  };
 
-  Sequence.prototype.setActions = function(actions) {
-    var instance = this;
+      this.currentIndex = 0;
+    };
 
-    instance.actions = [];
+    Sequence.prototype.stop = function() {
+      this.currentIndex = INDEX_INACTIVE;
+    };
 
-    _.each(actions, function(action) {
-        action.sequence = instance;
-
-        instance.actions.push(new Action(action));
-    });
-  };
-
-  Sequence.prototype.start = function() {
-    this.stop();
-
-    this.currentIndex = 0;
-  };
-
-  Sequence.prototype.stop = function() {
-    this.currentIndex = INDEX_INACTIVE;
-  };
-
-  return Sequence;
-});
+    return Sequence;
+  });
+})();
