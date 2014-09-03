@@ -67,7 +67,7 @@ define(['event-util'], function(EventUtil) {
 
       EventUtil.simulateTextInput(input, text);
 
-      assert.equal(focusHandler.callCount, 1, 'focusHandler should be called exactly once');
+      assert.equal(focusHandler.callCount, 2, 'focusHandler should be called exactly once');
 
       assert.equal(keyDownHandler.callCount, text.length, 'keyDownHandler should be called exactly ' + text.length + ' times');
       assert.equal(keyPressHandler.callCount, text.length, 'keyPressHandler should be called exactly ' + text.length + ' times');
